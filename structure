@@ -1,0 +1,18 @@
+project/
+├── ffmpeg/
+│   └── bin/
+│       └── ffmpeg.exe
+├── forecast_templates/
+│   ├── forecast_index.html
+│   └── forecast_result.html
+├── static/
+├── templates/
+│   └── index.html
+├── uploads/
+├── venv/            # Virtual environment
+├── app.log
+├── app.py
+├── best_lightgbm_hyperparameters.pkl
+├── best_lightgbm_model.pkl
+├── descriptions.json
+└── forecast_bp.py

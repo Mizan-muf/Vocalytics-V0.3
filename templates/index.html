@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Interactive Sales Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  
+  <!-- Using Google Fonts for a modern professional appearance -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+
+  <style>
+    :root {
+      --primary-color: #ffffff;
+      --secondary-color: #1976D2; /* A professional deep blue */
+      --button-hover: #115293;
+      --background: #f5f5f5;
+      --border-color: #e0e0e0;
+      --header-background: linear-gradient(135deg, #ffffff, #f1f3f4);
+      --header-shadow: rgba(0, 0, 0, 0.1);
+      --text-color: #333333;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Roboto', sans-serif; 
+      background-color: var(--background); 
+      color: var(--text-color); 
+      margin: 0; 
+      padding: 0;
+      line-height: 1.6;
+    }
+    
+    header {
+      background: var(--header-background);
+      padding: 20px 30px;
+      box-shadow: 0 2px 4px var(--header-shadow);
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .header-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+    
+    .header-content h1 {
+      margin: 0;
+      color: var(--secondary-color);
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    
+    .header-info {
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    #active-file {
+      font-weight: 500;
+      color: var(--secondary-color);
+      font-size: 16px;
+    }
+    
+    .button { 
+      padding: 10px 20px; 
+      font-size: 16px; 
+      cursor: pointer; 
+      color: var(--primary-color); 
+      background-color: var(--secondary-color); 
+      border: none; 
+      border-radius: 5px; 
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+    }
+    
+    .button:hover { 
+      background-color: var(--button-hover);
+      transform: translateY(-2px);
+    }
+    
+    .button:disabled { 
+      background-color: #cccccc; 
+      cursor: not-allowed; 
+      transform: none;
+    }
+    
+    .section { 
+      background-color: var(--primary-color);
+      padding: 20px 30px; 
+      margin: 40px auto; 
+      max-width: 1200px; 
+      border-radius: 8px; 
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section h2 {
+      color: var(--secondary-color);
+      margin-bottom: 20px;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+    }
+    
+    .plot-container {
+      width: 100%;
+      height: auto;
+      min-height: 600px;
+      margin: 0 auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: auto;
+      background-color: var(--primary-color);
+      padding: 10px;
+    }
+    
+    #loading {
+      font-size: 18px; 
+      color: var(--secondary-color); 
+      display: none; 
+      margin-top: 20px;
+    }
+    
+    .invisible { 
+      display: none;
+    }
+    
+    .summary-container {
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--primary-color);
+    }
+    
+    .audio-container {
+      margin-top: 20px;
+    }
+    
+    .navigation-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+    
+    .watermark {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    #csv-sidebar {
+      position: fixed;
+      right: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #f0f0f0;
+      padding: 20px;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      z-index: 1000;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    }
+    
+    #csv-sidebar.open { 
+      right: 0;
+    }
+    
+    #sidebar-toggle {
+      position: fixed;
+      top: 10px;
+      right: 20px;
+      z-index: 1100;
+      background-color: var(--secondary-color);
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 5px;
+      transition: transform 0.2s ease;
+    }
+    
+    #sidebar-toggle:hover {
+      transform: translateY(-2px);
+    }
+    
+    #sidebar-toggle .bar {
+      display: block;
+      width: 25px;
+      height: 3px;
+      margin: 4px 0;
+      background-color: var(--primary-color);
+    }
+    
+    #dashboard-section {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>Interactive Sales Dashboard</h1>
+      <div class="header-info">
+        <a href="/forecast/" class="button">Go to Forecasting</a>
+      </div>
+    </div>
+  </header>
+
+  <button id="sidebar-toggle" class="button">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
+
+  <div id="csv-sidebar">
+    <h2>Saved CSV Files</h2>
+    <ul id="csv-sidebar-list"></ul>
+  </div>
+
+  <div class="section" id="upload-csv-section">
+    <h2>Upload CSV File</h2>
+    <form id="csv-upload-form" enctype="multipart/form-data">
+      <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+      <button type="submit" class="button">Upload CSV</button>
+        <span id="active-file">No file selected</span>
+    </form>
+    <p id="csv-upload-status"></p>
+  </div>
+
+  <div class="section" id="dynamic-section">
+    <div id="questions">
+      <h3>Please provide a description:</h3>
+      <label>Description:<br>
+        <textarea id="description" name="description" rows="6" cols="60" required></textarea>
+      </label><br><br>
+      <button id="submit-answers" class="button">Submit Description</button>
+      <button id="edit-description" class="button" style="display: none;">Edit Description</button>
+    </div>
+
+    <div class="section" id="dashboard-section" style="display: none;">
+      <h2>Data Dashboard</h2>
+      <div class="plot-container" id="dashboard-plot"></div>
+      <p id="dashboard-loading" style="font-size: 18px; color: var(--secondary-color); display: none; margin-top: 20px;">
+        Generating Dashboard... Please wait.
+      </p>
+    </div>
+
+    <h2>Generate Dynamic Interactive Graphs</h2>
+    <!-- Record button now includes a microphone icon using Font Awesome -->
+    <button id="record-btn" class="button" disabled>
+      <i class="fas fa-microphone"></i> Record and Generate Graph
+    </button>
+    <p id="loading">Processing... Please wait.</p>
+
+    <div id="dynamic-graphs">
+      <div class="plot-container" id="current-plot"></div>
+      <div class="navigation-buttons">
+        <button id="prev-btn" class="button" disabled>&larr; Previous</button>
+        <button id="next-btn" class="button" disabled>Next &rarr;</button>
+      </div>
+      <div id="graph-summary" class="summary-container" style="display: none;">
+        <h3>Graph Summary</h3>
+        <p id="summary-text"></p>
+        <div class="audio-container">
+          <audio id="summary-audio" controls>
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="watermark">Powered By Fusion AI</div>
+  
+  <script>
+    // Frontend Logger
+    function logger(message) {
+      console.log(`[Dashboard Feature] ${message}`);
+    }
+
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle');
+    const csvSidebar = document.getElementById('csv-sidebar');
+    const csvSidebarList = document.getElementById('csv-sidebar-list');
+    const activeFileElement = document.getElementById('active-file');
+
+    const csvUploadForm = document.getElementById('csv-upload-form');
+    const csvUploadStatus = document.getElementById('csv-upload-status');
+    const recordBtn = document.getElementById('record-btn');
+    const submitAnswersBtn = document.getElementById('submit-answers');
+    const editDescriptionBtn = document.getElementById('edit-description');
+    const loadingText = document.getElementById('loading');
+    const graphSummary = document.getElementById('graph-summary');
+    const summaryText = document.getElementById('summary-text');
+    const summaryAudio = document.getElementById('summary-audio');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const currentPlot = document.getElementById('current-plot');
+
+    const dashboardSection = document.getElementById('dashboard-section');
+    const dashboardPlot = document.getElementById('dashboard-plot');
+    const dashboardLoading = document.getElementById('dashboard-loading');
+
+    let graphs = [];
+    let summaries = [];
+    let audioSummaries = [];
+    let staticImageUrls = [];
+    let storedAnswer1 = "";
+    let storedAnswer2 = "";
+    let currentIndex = -1;
+    let activeFilename = "";
+
+    // Retry limits for graph and dashboard generation
+    const MAX_GRAPH_RETRIES = 5;
+    const MAX_DASHBOARD_RETRIES = 5;
+
+    sidebarToggleBtn.addEventListener('click', () => {
+      csvSidebar.classList.toggle('open');
+      logger('Toggled CSV sidebar visibility.');
+    });
+
+    function loadCsvSidebar() {
+      logger('Fetching list of CSV files from server.');
+      fetch('/list_csv')
+        .then(response => response.json())
+        .then(files => {
+          csvSidebarList.innerHTML = '';
+          if (files.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = 'No CSV files uploaded.';
+            csvSidebarList.appendChild(li);
+            return;
+          }
+          files.forEach(file => {
+            const li = document.createElement('li');
+            li.textContent = file;
+            const selectBtn = document.createElement('button');
+            selectBtn.textContent = 'Select';
+            selectBtn.onclick = () => {
+              logger(`Selecting CSV file: ${file}`);
+              fetch('/set_csv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: file })
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.message) {
+                  alert(data.message);
+                  activeFileElement.innerText = `Active file: ${file}`;
+                  activeFilename = file;
+                  highlightActiveFile(file);
+                } else if (data.error) {
+                  alert('Error: ' + data.error);
+                }
+                logger(`Set CSV response: ${data.message || data.error}`);
+              })
+              .catch(error => {
+                logger(`Error selecting CSV file: ${error}`);
+                console.error('Error selecting CSV file:', error);
+              });
+            };
+            li.appendChild(selectBtn);
+            csvSidebarList.appendChild(li);
+          });
+          if (!activeFilename && files.length > 0) {
+            const defaultFile = files[0];
+            logger(`No active file set. Setting default active file to: ${defaultFile}`);
+            fetch('/set_csv', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: defaultFile })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.message) {
+                alert(`Default file selected: ${defaultFile}`);
+                activeFileElement.innerText = `Active file: ${defaultFile}`;
+                activeFilename = defaultFile;
+                highlightActiveFile(defaultFile);
+              } else if (data.error) {
+                alert('Error: ' + data.error);
+              }
+              logger(`Set default CSV response: ${data.message || data.error}`);
+            })
+            .catch(error => {
+              logger(`Error setting default CSV file: ${error}`);
+              console.error('Error setting default CSV file:', error);
+            });
+          }
+        })
+        .catch(error => {
+          logger(`Error listing CSV files: ${error}`);
+          console.error('Error listing CSV files:', error);
+        });
+    }
+
+    loadCsvSidebar();
+
+    function highlightActiveFile(filename) {
+      const buttons = csvSidebarList.querySelectorAll('button');
+      buttons.forEach(btn => {
+        if (btn.parentElement.textContent.trim() === filename) {
+          btn.style.backgroundColor = '#0b5ed7';
+          btn.style.color = '#ffffff';
+        } else {
+          btn.style.backgroundColor = '';
+          btn.style.color = '';
+        }
+      });
+      logger(`Highlighted active file: ${filename}`);
+    }
+
+    csvUploadForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const formData = new FormData(csvUploadForm);
+      const uploadedFileInput = document.getElementById('csv_file');
+      const uploadedFile = uploadedFileInput.files[0];
+      logger('Uploading CSV file.');
+      fetch('/upload_csv', { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message && data.filename) {
+            csvUploadStatus.innerText = data.message;
+            logger(`CSV upload successful: ${data.message}`);
+            loadCsvSidebar();
+            activeFilename = data.filename;
+            activeFileElement.innerText = `Active file: ${activeFilename}`;
+            highlightActiveFile(activeFilename);
+            alert(`Active file set to: ${data.filename}`);
+            uploadedFileInput.value = '';
+          } else if (data.error) {
+            csvUploadStatus.innerText = "Error: " + data.error;
+            logger(`CSV upload error: ${data.error}`);
+          }
+        })
+        .catch(error => {
+          logger(`Error uploading CSV: ${error}`);
+          console.error('Error uploading CSV:', error);
+          csvUploadStatus.innerText = "Error uploading CSV file.";
+        });
+    });
+
+    submitAnswersBtn.addEventListener('click', () => {
+      const descriptionValue = document.getElementById('description').value.trim();
+      if (descriptionValue) {
+        logger('Submitting description.');
+        storedAnswer1 = descriptionValue;
+        storedAnswer2 = "";
+        if (activeFilename) {
+          fetch('/update_description', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: activeFilename, description: descriptionValue })
+          })
+          .then(response => response.json())
+          .then(data => { 
+            logger(`Description update response: ${data.message || data.error}`);
+            if (data.message) {
+              // After updating description, generate the dashboard.
+              generateDashboard(descriptionValue, MAX_DASHBOARD_RETRIES);
+            }
+          })
+          .catch(error => {
+            logger(`Error updating description: ${error}`);
+            console.error('Error updating description:', error);
+          });
+        }
+        document.getElementById('questions').style.display = 'none';
+        recordBtn.disabled = false;
+        editDescriptionBtn.style.display = 'inline-block';
+        alert('Description submitted. You can now record audio to generate graphs.');
+      } else {
+        alert('Please provide a description before submitting.');
+        logger('Description submission failed: No description provided.');
+      }
+    });
+
+    editDescriptionBtn.addEventListener('click', () => {
+      document.getElementById('questions').style.display = 'block';
+      document.getElementById('description').value = storedAnswer1;
+      logger('Editing description.');
+    });
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Your browser does not support audio recording.');
+      logger('Browser does not support audio recording.');
+    }
+
+    // Function to send the graph generation request with automatic retry (max 3 attempts)
+    function sendGraphRequest(audioBlob, description, retries = MAX_GRAPH_RETRIES) {
+      let formData = new FormData();
+      formData.append('audio_data', audioBlob, 'recording.webm');
+      formData.append('q1', description);
+
+      fetch('/generate_graph', { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+          // Hide the processing message when a valid response is received
+          loadingText.style.display = 'none';
+          if (data.plot_json && data.summary) {
+            logger('Received graph data from server.');
+            graphs.push(JSON.parse(data.plot_json));
+            summaries.push(data.summary);
+            audioSummaries.push(data.audio_summary_url);
+            staticImageUrls.push(data.image_path);
+            // Automatically switch to the newly generated graph
+            currentIndex = graphs.length - 1;
+            displayGraph(currentIndex);
+            updateNavigationButtons();
+            recordBtn.disabled = false;
+          } else {
+            if (retries > 1) {
+              logger(`Graph generation failed: ${data.error || 'Invalid response'}. Retrying... (${retries-1} attempts left)`);
+              setTimeout(() => {
+                sendGraphRequest(audioBlob, description, retries - 1);
+              }, 2000);
+            } else {
+              logger("Graph generation failed after maximum attempts.");
+              loadingText.style.display = 'none';
+              recordBtn.disabled = false;
+              alert("Graph generation failed. Please try again later.");
+            }
+          }
+        })
+        .catch(error => {
+          if (retries > 1) {
+            logger(`Error generating graph: ${error}. Retrying... (${retries-1} attempts left)`);
+            console.error('Error generating graph:', error);
+            setTimeout(() => {
+              sendGraphRequest(audioBlob, description, retries - 1);
+            }, 2000);
+          } else {
+            logger(`Error generating graph after maximum attempts: ${error}`);
+            loadingText.style.display = 'none';
+            recordBtn.disabled = false;
+            alert("Graph generation failed. Please try again later.");
+          }
+        });
+    }
+
+    recordBtn.addEventListener('click', async () => {
+      recordBtn.disabled = true;
+      // Update loading message to show "Recording..." while audio is captured
+      loadingText.style.display = 'block';
+      loadingText.innerText = "Recording..."; 
+      graphSummary.style.display = 'none';
+      summaryText.innerText = '';
+      summaryAudio.src = '';
+
+      logger('Starting audio recording.');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        let audioChunks = [];
+
+        mediaRecorder.start();
+        logger("Recording started.");
+
+        mediaRecorder.addEventListener("dataavailable", event => {
+          audioChunks.push(event.data);
+        });
+
+        mediaRecorder.addEventListener("stop", () => {
+          // When recording stops, update message to "Processing... Please wait."
+          loadingText.innerText = "Processing... Please wait.";
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          // Call our retry-enabled function for graph generation.
+          sendGraphRequest(audioBlob, storedAnswer1, MAX_GRAPH_RETRIES);
+        });
+
+        setTimeout(() => {
+          mediaRecorder.stop();
+          stream.getTracks().forEach(track => track.stop());
+          logger("Recording stopped.");
+        }, 12000);
+      } catch (err) {
+        logger(`Error accessing microphone: ${err}`);
+        console.error('Error accessing microphone:', err);
+        loadingText.style.display = 'none';
+        recordBtn.disabled = false;
+        alert('Could not access the microphone. Please check your permissions.');
+      }
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        displayGraph(currentIndex);
+        logger(`Navigated to previous graph. Current index: ${currentIndex}`);
+      }
+      updateNavigationButtons();
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentIndex < graphs.length - 1) {
+        currentIndex++;
+        displayGraph(currentIndex);
+        logger(`Navigated to next graph. Current index: ${currentIndex}`);
+      }
+      updateNavigationButtons();
+    });
+
+    function displayGraph(index) {
+      currentPlot.innerHTML = '';
+      Plotly.newPlot(currentPlot, graphs[index].data, graphs[index].layout, {responsive: true});
+      summaryText.innerText = summaries[index];
+      graphSummary.style.display = 'block';
+      if (audioSummaries[index]) {
+        summaryAudio.src = audioSummaries[index];
+        summaryAudio.play().catch(error => {
+          logger(`Error playing audio summary: ${error}`);
+          console.error('Error playing audio:', error);
+        });
+        logger('Playing audio summary.');
+      } else {
+        summaryText.innerText += "\nAudio summary not available.";
+        summaryAudio.src = '';
+        logger('Audio summary not available.');
+      }
+    }
+
+    function updateNavigationButtons() {
+      prevBtn.disabled = currentIndex <= 0;
+      nextBtn.disabled = currentIndex >= graphs.length - 1;
+      logger(`Navigation buttons updated. Prev disabled: ${prevBtn.disabled}, Next disabled: ${nextBtn.disabled}`);
+    }
+
+    // Dashboard generation with automatic retry until success (max 3 attempts)
+    function generateDashboard(description, retries = MAX_DASHBOARD_RETRIES) {
+      logger('Sending request to generate dashboard.');
+      recordBtn.disabled = true;
+      dashboardLoading.style.display = 'block';
+      dashboardPlot.innerHTML = '';
+      dashboardSection.style.display = 'none';
+
+      fetch('/generate_dashboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ 'description': description })
+      })
+      .then(response => response.json())
+      .then(data => {
+        dashboardLoading.style.display = 'none';
+        recordBtn.disabled = false;
+        if (data.dashboard_json) {
+          logger('Received dashboard data from server.');
+          displayDashboard(data);
+        } else if (data.error) {
+          if (retries > 1) {
+            logger(`Error from server: ${data.error}. Retrying... (${retries-1} attempts left)`);
+            setTimeout(() => {
+              generateDashboard(description, retries - 1);
+            }, 2000);
+          } else {
+            logger("Dashboard generation failed after maximum attempts.");
+            alert("Dashboard generation failed. Please try again later.");
+          }
+        } else {
+          if (retries > 1) {
+            logger(`Unexpected response from the server. Retrying... (${retries-1} attempts left)`);
+            setTimeout(() => {
+              generateDashboard(description, retries - 1);
+            }, 2000);
+          } else {
+            logger("Dashboard generation failed after maximum attempts.");
+            alert("Dashboard generation failed. Please try again later.");
+          }
+        }
+      })
+      .catch(error => {
+        dashboardLoading.style.display = 'none';
+        recordBtn.disabled = false;
+        if (retries > 1) {
+          logger(`Error generating dashboard: ${error}. Retrying... (${retries-1} attempts left)`);
+          console.error('Error generating dashboard:', error);
+          setTimeout(() => {
+            generateDashboard(description, retries - 1);
+          }, 2000);
+        } else {
+          logger(`Error generating dashboard after maximum attempts: ${error}`);
+          alert("Dashboard generation failed. Please try again later.");
+        }
+      });
+    }
+
+    function displayDashboard(data) {
+      dashboardPlot.innerHTML = '';
+      if (data.dashboard_json) {
+        Plotly.newPlot(dashboardPlot, JSON.parse(data.dashboard_json).data, JSON.parse(data.dashboard_json).layout, {responsive: true});
+      }
+      dashboardSection.style.display = 'block';
+    }
+
+    window.addEventListener('resize', () => {
+      if (graphs.length > 0) {
+        Plotly.Plots.resize(currentPlot);
+        Plotly.Plots.resize(dashboardPlot);
+        logger('Plotly graphs resized on window resize.');
+      }
+    });
+  </script>
+</body>
+</html>

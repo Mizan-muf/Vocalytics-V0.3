@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sales Revenue Forecasting</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- Using Google Fonts for a modern professional appearance -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #ffffff;
+      --secondary-color: #1976D2; /* Deep blue for accents */
+      --button-hover: #115293;
+      --background: #f5f5f5;
+      --border-color: #e0e0e0;
+      --header-background: linear-gradient(135deg, #ffffff, #f1f3f4);
+      --header-shadow: rgba(0, 0, 0, 0.1);
+      --text-color: #333333;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    
+    /* Header styling with subtle gradient and refined typography */
+    header {
+      background: var(--header-background);
+      padding: 20px 30px;
+      box-shadow: 0 2px 4px var(--header-shadow);
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    header h1 {
+      margin: 0;
+      color: var(--secondary-color);
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    
+    .button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--primary-color);
+      background-color: var(--secondary-color);
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .button:hover {
+      background-color: var(--button-hover);
+    }
+    
+    /* Section styling */
+    .section {
+      background-color: var(--primary-color);
+      padding: 20px 30px;
+      margin: 40px auto;
+      max-width: 800px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section h2 {
+      color: var(--secondary-color);
+      margin-bottom: 20px;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+    }
+    
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    
+    label {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    input[type="file"] {
+      padding: 5px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: #fafafa;
+    }
+    
+    /* Loading indicator styling */
+    #loading {
+      display: none;
+      font-size: 18px;
+      color: var(--secondary-color);
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .watermark {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sales Revenue Forecasting</h1>
+    <!-- Navigation link to Dashboard -->
+    <a href="/" class="button">Go to Dashboard</a>
+  </header>
+  <div class="section">
+    <h2>Upload Sales Data for Forecasting</h2>
+    <!-- Add onsubmit handler to show loading indicator -->
+    <form id="upload-form" action="" method="post" enctype="multipart/form-data" onsubmit="showLoading()">
+      <div>
+        <label for="file">Select CSV File (.csv)</label><br>
+        <input type="file" id="file" name="file" accept=".csv" required>
+      </div>
+      <button type="submit" class="button">Upload and Forecast</button>
+    </form>
+    <p id="loading">Loading... Please wait.</p>
+  </div>
+  <div class="watermark">Powered By Fusion AI</div>
+  
+  <script>
+    // Show loading indicator when form is submitted
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

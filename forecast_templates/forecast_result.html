@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forecast Results</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <!-- Using Google Fonts for a modern professional appearance -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #ffffff;
+      --secondary-color: #1976D2; /* Professional deep blue */
+      --button-hover: #115293;
+      --background: #f5f5f5;
+      --border-color: #e0e0e0;
+      --header-background: linear-gradient(135deg, #ffffff, #f1f3f4);
+      --header-shadow: rgba(0, 0, 0, 0.1);
+      --text-color: #333333;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--background);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    
+    /* Header styling with a subtle gradient and refined typography */
+    header {
+      background: var(--header-background);
+      padding: 20px 30px;
+      box-shadow: 0 2px 4px var(--header-shadow);
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    header h1 {
+      margin: 0;
+      color: var(--secondary-color);
+      font-size: 28px;
+      letter-spacing: 0.5px;
+    }
+    
+    .button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      color: var(--primary-color);
+      background-color: var(--secondary-color);
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      display: inline-block;
+    }
+    
+    .button:hover {
+      background-color: var(--button-hover);
+      transform: translateY(-2px);
+    }
+    
+    .section {
+      background-color: var(--primary-color);
+      padding: 20px 30px;
+      margin: 40px auto;
+      max-width: 1200px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section h2 {
+      color: var(--secondary-color);
+      margin-bottom: 20px;
+      font-size: 22px;
+      letter-spacing: 0.3px;
+    }
+    
+    .plot-container {
+      width: 100%;
+      margin: 20px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: var(--primary-color);
+    }
+    
+    /* The summary and audio containers have been removed since those features are no longer used */
+    
+    .watermark {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 16px;
+      color: rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Forecast Results</h1>
+    <a href="{{ url_for('forecast.forecast_handler') }}" class="button">Upload Another File</a>
+    <!-- Navigation link to Dashboard -->
+    <a href="/" class="button">Go to Dashboard</a>
+  </header>
+  <div class="section">
+    {% for key, data in results.items() %}
+      <div class="plot-container">
+        {% if key == 'Overall' %}
+          <h2>Overall Revenue Forecast</h2>
+        {% else %}
+          <h2>Salesperson: {{ key }}</h2>
+        {% endif %}
+        <!-- Embed the interactive Plotly graph -->
+        {{ data.graph_div|safe }}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="watermark">Powered By Fusion AI</div>
+</body>
+</html>
