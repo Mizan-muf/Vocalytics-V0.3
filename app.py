@@ -57,7 +57,6 @@ app.jinja_loader = ChoiceLoader([
 ])
 
 # Environment Variables for Configuration
-GENAI_API_KEY = "AIzaSyAIiDR4psalcm9WhVdXl313M4RuzKFsFiU"
 genai.configure(api_key=GENAI_API_KEY)
 
 # Global variables for CSV handling, descriptions
@@ -722,3 +721,4 @@ if __name__ == "__main__":
         app.run(debug=True, port=8000)
     except Exception as e:
         logger.critical(f"Failed to start Flask server: {e}")
+
